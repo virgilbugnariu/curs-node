@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Test Form</title>
+  </head>
+
+  <body>
+    <div>
+      <ul class="todo-list">
+
+      </ul>
+
+      <button onclick="addNewTodo()">Add new todo</button>
+    </div>
+
+    <script>
+      function getTodosList() {
+        fetch('/')
+          .then(r => r.json())
+          .then(todos => {
+            var holder = document.querySelector('.todo-list')
+            holder.innerHTML = "";
+
+            todos.forEach( todo => {
+              const todoElem = document.createElement('li');
+              todoElem.innerText = todo.todo;
+              holder.appendChild(todoElem);
+            });
+          })
+      }
+
+      function addNewTodo() {
+        fetch('/', {
+          method: "POST",
+          headers: {
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            todo: 'testoots',
+            completed: false,
+          })
+        }).then( r => r.json())
+          .then( d => getTodosList());
+      }
+      getTodosList();
+    </script>
+    <!-- <form>
+      <label>Username:<input name="username" type="text" /></label>
+      <label>Password:<input name="password" type="password" /></label>
+      <input type="submit" value="Login" />
+    </form>
+
+
+          <script type="text/javascript">
+            function onSubmit(e) {
+              e.preventDefault();
+
+              var data = {};
+              var form = new FormData(e.target);
+
+              form.forEach(function(val, key) {
+                data[key] = val;
+              });
+
+              fetch('/login', {
+                method: "POST",
+                headers: {
+                  "content-type" : "application/json"
+                },
+                body: JSON.stringify(data),
+              })
+                .then(r => r.json())
+                .then(data => console.log(data));
+            }
+
+            document.querySelector('form').addEventListener('submit', onSubmit);
+          </script> -->
+  </body>
+
+</html>
