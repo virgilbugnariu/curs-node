@@ -1,16 +1,59 @@
 const http = require('http');
 const express = require('express');
 const storageDriver = require('./storage');
+const jwt = require("jsonwebtoken");
+const bodyParser = require('body-parser');
 
 const app = express(http);
-app.use(express.json());
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
 
 const storage = new storageDriver();
 
+const admin = {
+  username: "admin",
+  password: "admin",
+}
+
+const secret = "superSecretdiscret";
+
+app.post('/login', (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+
+  if(username === admin.username && password === admin.password) {
+    const token = jwt.sign({
+      exp: Math.floor(Date.now() / 1000) + 30,
+      username: username,
+    }, secret);
+
+    res.status(200).send({
+      token: token,
+    });
+  } else {
+    res.status(401).send({
+      error: "Nope",
+    });
+  }
+});
+
+
 app.get('/:id?', (req, res) => {
-    const entryId = req.params.id;
-    const response = JSON.stringify(storage.read(entryId));
-    res.send(response);
+  const token = req.headers.authorization.replace("Bearer ", "");
+
+  jwt.verify(token, secret, function(err, decoded) {
+    if(err) {
+      console.log('error', err);
+      return res.status(401).send({
+        error: "unauthorized",
+      })
+    } else {
+      const entryId = req.params.id;
+      const response = JSON.stringify(storage.read(entryId));
+      return res.send(response);
+    }
+  });
 });
 
 app.post('/', (req, res) => {
