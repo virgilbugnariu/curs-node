@@ -18,10 +18,15 @@ const admin = {
 
 const secret = "superSecretdiscret";
 
-app.post('/login', (req, res) => {
+
+app.get('/form', (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
+
+app.post('/login',(req, res) => {
   const username = req.body.username;
   const password = req.body.password;
-
+  console.log(req.body);
   if(username === admin.username && password === admin.password) {
     const token = jwt.sign({
       exp: Math.floor(Date.now() / 1000) + 30,
@@ -40,20 +45,9 @@ app.post('/login', (req, res) => {
 
 
 app.get('/:id?', (req, res) => {
-  const token = req.headers.authorization.replace("Bearer ", "");
-
-  jwt.verify(token, secret, function(err, decoded) {
-    if(err) {
-      console.log('error', err);
-      return res.status(401).send({
-        error: "unauthorized",
-      })
-    } else {
-      const entryId = req.params.id;
-      const response = JSON.stringify(storage.read(entryId));
-      return res.send(response);
-    }
-  });
+  const entryId = req.params.id;
+  const response = JSON.stringify(storage.read(entryId));
+  return res.send(response);
 });
 
 app.post('/', (req, res) => {
@@ -76,5 +70,4 @@ app.delete('/:id', (req, res) => {
   storage.delete(entryId);
   res.send(`deleting entry with id: ${entryId}`)
 });
-
 app.listen(3000, () => console.log('started'));
